@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>云店摇一摇</title>
+    <meta name="keywords" content="云店摇一摇"/>
+    <meta name="description" content="云店摇一摇"/>
+    <meta name="viewport"
+          content="width=device-width,height=device-height,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <link rel="shortcut icon" href="http://www.suning.com/favicon.ico" type="image/x-icon"/>
+    <!-- build:css ./assets/css/hudong.css?v=201509027 -->
+    <link rel="stylesheet" href="css/hudong.scss?v=20150922"/>
+    <!-- endbuild -->
+</head>
+<body>
+<script>
+    (function (win) {
+        var html = document.documentElement;
+
+        function setRem() {
+            var width = document.body.offsetWidth / 10;
+            html.style.fontSize = width + "px";
+        }
+
+        setRem();
+        win.onresize = setRem;
+    })(window);
+</script>
+<div class="share">
+    <div class="banner">SUNING</div>
+    <p class="sh-text">我在<em>新街口门店摇一摇比赛</em>中获得了第<em id="rank"></em>名，得到“<em id="awardName"></em>”，<em>你也来新街口门店</em>玩玩吧</p>
+    <div class="lion2"><img src="images/lion2.png" baseurl="./assets/" alt=""/></div>
+</div>
+<div class="lion lion2"></div>
+<script src="http://m.suning.com/RES/wap/common/script/lib/zepto/1.1.4/zepto.min.js"></script>
+<!-- build:js ./assets/js/purl.js -->
+<script src='js/purl.js'></script>
+<!-- endbuild -->
+<!-- build:js ./assets/js/user_share.js -->
+<script src='js/user_share.js'></script>
+<!-- endbuild -->
+</body>
+</html>

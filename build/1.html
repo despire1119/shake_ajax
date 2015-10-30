@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<style>
+	body{background-color: #FFC22C}
+	</style>
+	<script src="./assets/js/purl.js"></script>
+	<script src="./assets/js/global.js?v=20150925"></script>
+	<script>
+		var url = window.location.href;
+		var params = purl().param();
+		window.location.href = g.wxapi + encodeURIComponent(g.wxRedirectUrl + '?roomId=' + params.roomId+'&code='+params.code);
+		//window.location.href= g.wxRedirectUrl
+	</script>
+</head>
+<body>
+
+</body>
+</html>

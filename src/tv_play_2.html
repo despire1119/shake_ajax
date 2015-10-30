@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>云店摇一摇</title>
+    <meta name="keywords" content="云店摇一摇"/>
+    <meta name="description" content="云店摇一摇"/>
+    <link rel="shortcut icon" href="http://www.suning.com/favicon.ico" type="image/x-icon"/>
+    <!-- build:css ./assets/css/hudongtv.css?v=201509101 -->
+    <link rel="stylesheet" href="css/hudongtv.scss?v=20150922"/>
+    <!-- endbuild -->
+</head>
+<body>
+<div class="race2 bg-re">
+    <div class="wrapper wrapper-re">
+        <div class="banner">*全民摇一摇*</div>
+        <div class="title">
+            <p id="title">拼命摇</p>
+            <!--<span class="once-again">再来一次</span>-->
+        </div>
+        <div class="line"></div>
+        <div class="rank clearfix">
+            <div class="rank-list l">
+                <div class="user list hide" data-uid="" data-count="">
+                    <div class="user-ifo">
+                        <img src="./assets/images/wx_pic_default.jpg" alt="用户头像">
+
+                        <div id="crown"></div>
+                        <p>用户</p>
+                        <strong class="number hide"></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--<div class="count-bg">-->
+<!--<div class="count">5</div>-->
+<!--</div>-->
+<audio src="music/readyGo.mp3" id="ready-go"></audio>
+<audio src="music/race.mp3" id="race" loop></audio>
+
+
+<script src="http://res.suning.cn/public/v3/js/jquery.js"></script>
+<!-- build:js ./assets/js/purl.js -->
+<script src='js/purl.js'></script>
+<!-- endbuild -->
+<!-- build:js ./assets/js/js.cookie.js -->
+<script src='js/js.cookie.js'></script>
+<!-- endbuild -->
+<!-- build:js ./assets/js/global.js?v=20150925 -->
+<script src='js/global.js?v=20151010'></script>
+<!-- endbuild -->
+<!-- build:js ./assets/js/common.js?v=1 -->
+<script src='js/common.js?v=1'></script>
+<!-- endbuild -->
+
+<!-- build:js ./assets/js/tv_play.js?v=20150928 -->
+<script src='js/tv_play.js?v=20150929'></script>
+<!-- endbuild -->
+
+<script>
+    var hudongtv = (function (o) {
+        var num = 5, timeId;
+        var globalVar = 1;
+        o.countDown = function (func) {      //倒计时
+            timeId = setTimeout(function () {
+                o.countDown(func);
+            }, 1000);
+            var readyGoBgAudio = document.getElementById('ready-go');
+            if (readyGoBgAudio) {
+                readyGoBgAudio.play();
+            }  //倒计时开始，同时播放引擎声
+            if (num != 0) {
+                $('.count').text(num).addClass('count-big');
+                num--;
+                if (num == 1) {
+                    var readyGoAudio = document.getElementById('ready-go');
+                    if (readyGoAudio) {
+                        readyGoAudio.play();
+                    }  //倒计时最后一秒，播放ready go
+                }
+            } else {
+                func();
+                clearTimeout(timeId);
+                $('.count-bg').hide();
+                $('#ready-go').remove();
+                // //使用web worker模拟数据传输
+                var worker = new Worker("worker.js");
+                worker.onmessage = function (event) {
+                    hudongtv.beginGame(event.data);
+                };
+            }
+
+        };
+        //开始赛车
+        o.beginGame = function (data, countNum, maxNum, callback) {
+            var len = data.length;
+            if (len) {
+                for (var i = 0; i < len; i++) {
+                    if ($(".user:hidden").length) {
+                        $('.user').eq(i).removeClass('hide');
+                    }
+                }
+                //data.sort(compare("shaking_num"));  //按次数从大到小排
+                var users = $('.user').not(':hidden');
+                var usersLen = users.length;
+                var flag = 0;
+                users.each(function (index, ele) {
+                    var shakeCount = parseInt(data[index].shakeCount);
+                    var distance = (560 / countNum) * shakeCount;
+                    var id = data[index].wxOpenId;
+                    var avatar = data[index].wxPic;
+                    var nickname = data[index].nickName;
+                    var latest;
+                    if ($('#' + id).length) {
+                        if (distance > 560) {
+                            $('#' + id).find('list').css('height', 650);
+                        } else {
+                            var num = generateMixed(6);
+                            $('#' + id).css('height', 90 + distance);
+                            $('#' + id).find('.user-ifo img').attr('src', avatar);
+                            $('#' + id).find('p').text(nickname);
+                            $('#' + id).css('background',"#"+num+"");
+                        }
+                    } else {
+                        var notRacing = users.not('.racing');
+                        if ($('.racing').length < maxNum) {
+                            notRacing.eq(0).addClass('racing');
+                            notRacing.eq(0).attr('id', id);
+                            notRacing.eq(0).css('height', 90 + distance);
+                            users.not('.racing').eq(0).find('.user-ifo img').attr('src', avatar);
+                            users.not('.racing').eq(0).find('p').text(nickname);
+                        } else {
+                            var arr = [];
+                            $('.racing').each(function (index, ele) {
+                                arr[index] = {};
+                                arr[index].count = parseFloat($(ele).css('height'));
+                                arr[index].id = $(ele).attr('id');
+                                arr.sort(compare("count"));
+                            });
+                            var len = arr.length - 1 - flag;
+                            var ids = arr[len].id;
+                            if (distance > 1180) {
+                                $('#' + ids).css('height', 650);
+                            } else {
+                                var num = generateMixed(6);
+                                $('#' + ids).css('height', 90 + distance);
+                                $('#' + ids).find('.user-ifo img').attr('src', avatar);
+                                $('#' + ids).find('p').text(nickname);
+                                $('#' + ids).css('background',"#"+num+"");
+                            }
+                            $('#' + ids).attr('id', id);
+                            flag++;
+                        }
+                    }
+                });
+                for (var i = 0; i < len; i++) {
+                    if (parseInt(data[i].shakeCount) >= countNum) {
+                        if (!$('#' + data[i].wxOpenId).length || $('#' + data[i].wxOpenId).hasClass('move-to-end')) {
+
+                        } else {
+                            $('#' + data[i].wxOpenId).addClass('move-to-end')
+                            $('#' + data[i].wxOpenId).find('.number').html(globalVar);//去掉.show()
+                            globalVar++;
+                        }
+                    }
+                }
+                //如果都到了终点，就结束游戏
+                if (parseInt(data[data.length - 1].shakeCount) >= parseInt(countNum)) {
+                    setTimeout(function () {
+                        callback();
+                    }, 1000);
+                }
+            }
+        };
+        function compare(propertyName) {
+            return function (object1, object2) {
+                var value1 = object1[propertyName];
+                var value2 = object2[propertyName];
+                if (value2 < value1) {
+                    return -1;
+                }
+                else if (value2 > value1) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            }
+        }
+
+        //随机变色
+        var chars = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
+
+        function generateMixed(n) {
+            var res = "";
+            for(var i = 0; i < n ; i ++) {
+                var id = Math.ceil(Math.random()*16);
+                res += chars[id];
+            }
+            return res;
+        }
+        return o;
+    })(hudongtv || {});
+
+    function numberShow() {
+        var _this = $(this);
+        var number = _this.find('.user-ifo .number');
+        //console.log(this);
+        _this.css('height') == '650px' ? number.show().addClass('rank-mode') : number.hide().removeClass('rank-mode');
+    }
+    $('.user').on('transitionend webkitTransitionEnd', numberShow);
+
+
+</script>
+</body>
+</html>
